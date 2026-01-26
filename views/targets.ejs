@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <style>
+        body { background: #f8fafb; font-family: sans-serif; padding: 25px; }
+        .card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+        .target-card { background: white; padding: 20px; border-radius: 15px; text-align: center; border-bottom: 5px solid #ff5e00; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .perf-table { width: 100%; background: white; border-radius: 15px; border-collapse: collapse; overflow: hidden; }
+        .perf-table th { background: #333; color: white; padding: 15px; }
+        .perf-table td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; }
+    </style>
+</head>
+<body>
+    <h2 style="color: #ff5e00;">تحليل أداء الزون: <%= zone %></h2>
+    <div class="card-grid">
+        <div class="target-card"><h3>التارجت المطلوب</h3><h1><%= target %></h1></div>
+        <div class="target-card" style="border-color: #007bff;"><h3>الأفريدج الحالي</h3><h1><%= avg %></h1></div>
+        <div class="target-card" style="border-color: #28a745;"><h3>نسبة الإنجاز</h3><h1><%= percent %></h1></div>
+    </div>
+    <table class="perf-table">
+        <thead><tr><th>التاريخ</th><th>الساعات المحققة</th></tr></thead>
+        <tbody>
+            <% performance.forEach(p => { %>
+                <tr><td><%= p.date %></td><td style="font-weight: bold;"><%= p.value %></td></tr>
+            <% }) %>
+        </tbody>
+    </table>
+    <br><a href="/dashboard" style="text-decoration: none; color: #ff5e00;">← العودة للرئيسية</a>
+</body>
+</html>

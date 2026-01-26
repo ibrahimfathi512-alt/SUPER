@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <style>
+        body { margin: 0; font-family: 'Segoe UI'; display: flex; height: 100vh; overflow: hidden; }
+        .login-side { width: 400px; padding: 50px; background: white; display: flex; flex-direction: column; justify-content: center; box-shadow: 10px 0 30px rgba(0,0,0,0.05); z-index: 2; }
+        .hero-side { flex: 1; background: linear-gradient(rgba(255, 94, 0, 0.8), rgba(255, 94, 0, 0.8)), url('https://images.unsplash.com/photo-1595246140625-573b715d11dc?q=80&w=2070&auto=format&fit=crop'); background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; color: white; text-align: center; }
+        .btn { background: #ff5e00; color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; font-size: 1.1em; transition: 0.3s; }
+        .btn:hover { background: #e05200; transform: translateY(-3px); box-shadow: 0 10px 20px rgba(255, 94, 0, 0.3); }
+        select, input { width: 100%; padding: 15px; margin-bottom: 20px; border-radius: 10px; border: 1px solid #ddd; outline: none; }
+    </style>
+</head>
+<body>
+    <div class="login-side">
+        <h1 style="color: #ff5e00;">مرحبا بك </h1>ًك</h1>
+        <p style="color: #666; margin-bottom: 30px;">اختر المنطقة وكلمة المرور للدخول</p>
+        <form action="/login" method="POST">
+            <select name="zone"> <% zones.forEach(z => { %> <option value="<%= z %>"><%= z %></option> <% }) %> </select>
+            <input type="password" name="password" placeholder="كلمة المرور" required>
+            <button class="btn">دخول النظام</button>
+        </form>
+        <% if(error) { %> <p style="color: red; margin-top: 15px; text-align: center;"><%= error %></p> <% } %>
+    </div>
+    <div class="hero-side">
+        <div><h1 style="font-size: 4em; margin: 0;">Talabat Dashboard</h1><p style="font-size: 1.5em;">نظام المشرفين متكامل هذا العمل بواسطه IBRAHIM FATHI</p></div>
+    </div>
+</body>
+</html>

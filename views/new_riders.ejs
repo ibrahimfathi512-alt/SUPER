@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <style>
+        body { background: #f0f2f5; font-family: 'Segoe UI'; padding: 25px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+        .card { background: white; padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 15px; overflow: hidden; }
+        th { background: #007bff; color: white; padding: 15px; }
+        td { padding: 12px; border-bottom: 1px solid #f1f1f1; text-align: center; }
+        .status-ok { background-color: #d1fae5 !important; color: #065f46 !important; font-weight: bold; }
+        .status-no { color: #dc3545; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+        <h2>متابعة التعيينات الجديدة 🆕</h2>
+        <a href="/dashboard" style="background: #333; color: white; padding: 10px 15px; text-decoration: none; border-radius: 8px;">العودة للرئيسية</a>
+    </div>
+
+    <div class="stats-grid">
+        <div class="card" style="border-bottom: 8px solid #007bff;"><h3>إجمالي التعيينات</h3><h1 style="color: #007bff;"><%= stats.total %></h1></div>
+        <div class="card" style="border-bottom: 8px solid #28a745;"><h3>استلم الشغل</h3><h1 style="color: #28a745;"><%= stats.received %></h1></div>
+        <div class="card" style="border-bottom: 8px solid #dc3545;"><h3>لم يستلم بعد</h3><h1 style="color: #dc3545;"><%= stats.notReceived %></h1></div>
+    </div>
+
+    <table>
+        <thead><tr> <% headers.forEach(h => { %> <th><%= h %></th> <% }) %> </tr></thead>
+        <tbody>
+            <% riders.forEach(r => { 
+                let status = r.get('الحاله'); 
+            %>
+            <tr class="<%= status === 'استلم' ? 'status-ok' : '' %>">
+                <% headers.forEach(h => { %>
+                    <td class="<%= (h === 'الحاله' && (status === 'لم يستلم' || status === 'لم يتم التسليم')) ? 'status-no' : '' %>">
+                        <%= cleanData(r.get(h)) %>
+                    </td>
+                <% }) %>
+            </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</body>
+</html>

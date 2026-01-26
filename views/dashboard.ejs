@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <style>
+        body { background: #f8fafb; font-family: 'Segoe UI', sans-serif; padding: 25px; margin: 0; }
+        .nav { background: white; padding: 15px 30px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .card { background: white; padding: 20px; border-radius: 15px; border-right: 6px solid #ff5e00; text-align: center; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 15px; overflow: hidden; }
+        th { background: #ff5e00; color: white; padding: 15px; }
+        td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; }
+        .row-alert { background-color: #ffe0e3 !important; }
+        .wallet-locked { background-color: #d63031 !important; color: white !important; font-weight: bold; border-radius: 8px; }
+        .btn { padding: 10px 15px; border-radius: 10px; text-decoration: none; color: white; font-weight: bold; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <h2 style="color: #ff5e00;">زون: <%= zone %></h2>
+        <div style="display: flex; gap: 10px;">
+            <a href="/targets" class="btn" style="background: #ff5e00;">تحليل التارجت 📊</a>
+            <a href="/new-riders" class="btn" style="background: #007bff;">التعيينات الجديدة 🆕</a>
+            <a href="/download" class="btn" style="background: #28a745;">تحميل Excel 📥</a>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="card"><h3>إجمالي القوة</h3><h2><%= stats.total %></h2></div>
+        <div class="card" style="border-right-color: #28a745;"><h3>حاجزين شيفت</h3><h2><%= stats.withShifts %></h2></div>
+        <div class="card" style="border-right-color: #636e72;"><h3>غير حاجزين</h3><h2><%= stats.noShifts %></h2></div>
+        <div class="card" style="border-right-color: #007bff;"><h3>جدد (يناير)</h3><h2><%= stats.newCount %></h2></div>
+        <div class="card" style="border-right-color: #dc3545;"><h3>محافظ > 1000</h3><h2><%= stats.highWallet %></h2></div>
+    </div>
+
+    <input type="text" id="srch" onkeyup="search()" placeholder="🔎 ابحث بـ ID أو الاسم..." style="width: 100%; padding: 15px; margin-bottom: 20px; border-radius: 12px; border: 2px solid #ddd; outline: none;">
+
+    <table id="tbl">
+        <thead><tr> <% headers.forEach(h => { %> <th><%= h %></th> <% }) %> </tr></thead>
+        <tbody>
+            <% riders.forEach(r => { 
+                let wallet = cleanData(r.get('المحفظه'));
+                let isAlert = (cleanData(r.get('شيفتات الغد')) === 0) || (cleanData(r.get('التاخيرات')) > 0);
+            %>
+            <tr class="<%= isAlert ? 'row-alert' : '' %>">
+                <% headers.forEach(h => { %>
+                    <td class="<%= (h === 'المحفظه' && wallet > 1000) ? 'wallet-locked' : '' %>">
+                        <%= cleanData(r.get(h)) %>
+                        <%= (h === 'المحفظه' && wallet > 1000) ? '🔒' : '' %>
+                    </td>
+                <% }) %>
+            </tr>
+            <% }) %>
+        </tbody>
+    </table>
+
+    <script>
+        function search() {
+            let f = document.getElementById("srch").value.toLowerCase();
+            let rows = document.getElementById("tbl").getElementsByTagName("tr");
+            for (let i = 1; i < rows.length; i++) {
+                rows[i].style.display = rows[i].innerText.toLowerCase().includes(f) ? "" : "none";
+            }
+        }
+    </script>
+</body>
+</html>
