@@ -6,25 +6,39 @@ const XLSX = require('xlsx');
 
 const app = express();
 
-// إعدادات المحرك والقوالب
+// --- الإعدادات العامة (Configuration) ---
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
 app.use(session({
     secret: 'talabat-final-pro-2026',
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false } // اجعلها true فقط إذا كنت تستخدم HTTPS
+    cookie: { secure: false } // اجعلها true فقط في حالة استخدام HTTPS
 }));
 
+// معرف ملف جوجل شيت الخاص بك
 const SPREADSHEET_ID = '1bNhlUVWnt43Pq1hqDALXbfGDVazD7VhaeKM58hBTsN0';
 
-// --- دالة الاتصال بجوجل شيت ---
+// كلمات مرور المناطق
+const zonePasswords = {
+    'Ain shams': '754', 'Cairo_city_centr': '909', 'Giza': '1568',
+    'Heliopolis': '2161', 'Maadi': '878', 'Mohandiseen': '1862',
+    'Nasr city': '2851', 'October': '2161', 'Sheikh zayed': '854', 'T SOUTH': '1072'
+};
+
+// --- الدوال المساعدة (Helper Functions) ---
+
+/**
+ * دالة للاتصال بجوجل شيت مع دعم البيئة المحلية والاستضافة
+ */
 async function getDoc() {
     let credsData;
     
+    // التحقق من وجود بيانات الاعتماد في متغيرات البيئة (للاستضافة أونلاين)
     if (process.env.GOOGLE_CREDS) {
         credsData = JSON.parse(process.env.GOOGLE_CREDS);
     } else {
+        // التحقق من وجود الملف محلياً (للجهاز الشخصي)
         try {
             credsData = require('./credentials.json');
         } catch (e) {
@@ -34,7 +48,7 @@ async function getDoc() {
 
     const auth = new JWT({
         email: credsData.client_email,
-        key: credsData.private_key.replace(/\\n/g, '\n'),
+        key: credsData.private_key.replace(/\\n/g, '\n'), // إصلاح مشكلة السطور الجديدة
         scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
 
@@ -43,12 +57,9 @@ async function getDoc() {
     return doc;
 }
 
-const zonePasswords = {
-    'Ain shams': '754', 'Cairo_city_centr': '909', 'Giza': '1568',
-    'Heliopolis': '2161', 'Maadi': '878', 'Mohandiseen': '1862',
-    'Nasr city': '2851', 'October': '2161', 'Sheikh zayed': '854', 'T SOUTH': '1072'
-};
-
+/**
+ * تنظيف البيانات وتحويلها لأرقام إذا لزم الأمر
+ */
 const cleanData = (val) => {
     if (!val || ['NA', '#N/A', 'N/A', ''].includes(val)) return 0;
     let res = parseFloat(val.toString().replace(/,/g, ''));
@@ -57,12 +68,13 @@ const cleanData = (val) => {
 
 // --- المسارات (Routes) ---
 
-// 1. صفحة تسجيل الدخول
+// 1. صفحة تسجيل الدخول (عرض المناطق المتاحة تلقائياً)
 app.get('/', async (req, res) => {
     try {
         const doc = await getDoc();
         const sheet = doc.sheetsByIndex[0];
         const rows = await sheet.getRows();
+        // استخراج المناطق الفريدة من عمود zone_name
         const allZones = [...new Set(rows.map(r => r.get('zone_name')))].filter(z => z);
         res.render('login', { zones: allZones, error: null });
     } catch (e) { 
@@ -71,7 +83,7 @@ app.get('/', async (req, res) => {
     }
 });
 
-// 2. معالجة الدخول
+// 2. معالجة بيانات الدخول
 app.post('/login', (req, res) => {
     const { zone, password } = req.body;
     if (zonePasswords[zone] === password) {
@@ -82,7 +94,7 @@ app.post('/login', (req, res) => {
     }
 });
 
-// 3. لوحة التحكم الرئيسية
+// 3. لوحة التحكم الرئيسية (Dashboard)
 app.get('/dashboard', async (req, res) => {
     if (!req.session.userZone) return res.redirect('/');
     try {
@@ -91,6 +103,7 @@ app.get('/dashboard', async (req, res) => {
         const rows = await sheet.getRows();
         let myRiders = rows.filter(r => r.get('zone_name') === req.session.userZone);
 
+        // جلب بيانات التعيينات الجديدة
         const lastSheet = doc.sheetsByTitle['تعيينات الشهر'];
         const newRiderRows = await lastSheet.getRows();
         const newCount = newRiderRows.filter(r => r.get('zone_name') === req.session.userZone).length;
@@ -104,11 +117,11 @@ app.get('/dashboard', async (req, res) => {
         };
         res.render('dashboard', { riders: myRiders, zone: req.session.userZone, stats, headers: sheet.headerValues, cleanData });
     } catch (e) { 
-        res.status(500).send("خطأ في تحميل البيانات: " + e.message); 
+        res.status(500).send("خطأ في تحميل البيانات من لوحة التحكم: " + e.message); 
     }
 });
 
-// 4. تعيينات الشهر
+// 4. صفحة التعيينات الجديدة
 app.get('/new-riders', async (req, res) => {
     if (!req.session.userZone) return res.redirect('/');
     try {
@@ -124,11 +137,11 @@ app.get('/new-riders', async (req, res) => {
         };
         res.render('new_riders', { zone: req.session.userZone, riders: myNew, stats, headers: sheet.headerValues, cleanData });
     } catch (e) { 
-        res.send("تأكد من وجود ورقة باسم 'تعيينات الشهر' في الملف"); 
+        res.send("تأكد من وجود ورقة باسم 'تعيينات الشهر' في ملف جوجل شيت الخاص بك"); 
     }
 });
 
-// 5. التارجت والأداء
+// 5. صفحة التارجت والأداء
 app.get('/targets', async (req, res) => {
     if (!req.session.userZone) return res.redirect('/');
     try {
@@ -137,10 +150,11 @@ app.get('/targets', async (req, res) => {
         const rows = await sheet.getRows();
         const zoneData = rows.find(r => r.get('zone_name') === req.session.userZone);
 
-        if (!zoneData) return res.send("لا توجد بيانات تارجت لهذه المنطقة");
+        if (!zoneData) return res.send("لا توجد بيانات تارجت متاحة لهذه المنطقة حالياً");
 
         let performance = [];
         sheet.headerValues.forEach(h => {
+            // تجميع الأعمدة التي تحتوي على تواريخ أداء
             if (h.includes('/')) performance.push({ date: h, value: cleanData(zoneData.get(h)) });
         });
 
@@ -152,11 +166,11 @@ app.get('/targets', async (req, res) => {
             percent: zoneData.get('Average %') || '0%'
         });
     } catch (e) { 
-        res.send("خطأ في الوصول لورقة التارجت"); 
+        res.send("خطأ في الوصول لبيانات ورقة 'التارجت'"); 
     }
 });
 
-// 6. تحميل ملف Excel
+// 6. مسار تحميل بيانات المنطقة كملف Excel
 app.get('/download', async (req, res) => {
     if (!req.session.userZone) return res.redirect('/');
     try {
@@ -168,20 +182,21 @@ app.get('/download', async (req, res) => {
 
         const ws = XLSX.utils.json_to_sheet(myData);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Data");
+        XLSX.utils.book_append_sheet(wb, ws, "RidersData");
         
         const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
         res.setHeader('Content-Disposition', `attachment; filename=Riders_${req.session.userZone}.xlsx`);
         res.type('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.send(buffer);
     } catch (e) {
-        res.status(500).send("خطأ أثناء تصدير الملف");
+        console.error(e);
+        res.status(500).send("حدث خطأ تقني أثناء محاولة تصدير ملف الإكسيل");
     }
 });
 
-// تشغيل السيرفر
+// --- تشغيل السيرفر ---
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`✅ Server is running on port ${PORT}`);
-    console.log(`🔗 Local: http://localhost:${PORT}`);
+    console.log(`✅ السيرفر يعمل الآن بنجاح`);
+    console.log(`🔗 الرابط المحلي: http://localhost:${PORT}`);
 });
