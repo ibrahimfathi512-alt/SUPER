@@ -196,8 +196,15 @@ app.get('/download', async (req, res) => {
 
 // --- تشغيل السيرفر ---
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`✅ السيرفر يعمل الآن بنجاح`);
-    console.log(`🔗 الرابط المحلي: http://localhost:${PORT}`);
-});
-module.exports = app; // أضف هذا السطر في نهاية الملف تماماً
+// أضف هذا في أول الملف
+const serverless = require('serverless-http');
+
+// ... (باقي الكود الخاص بك) ...
+
+// في آخر الملف استبدل الجزء القديم بهذا:
+if (process.env.NETLIFY) {
+  module.exports.handler = serverless(app);
+} else {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
