@@ -6,11 +6,14 @@ const XLSX = require('xlsx');
 const path = require('path');
 
 const app = express();
+
+// إعدادات المحرك والقوالب
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 
+// إعدادات الجلسة (Session)
 app.use(session({
     secret: 'talabat-supervisor-pro-2026',
     resave: false,
@@ -28,53 +31,69 @@ const zonePasswords = {
     'October': '2161', 'Portsaid city': '9900', 'Shebin el koom': '4455', 
     'Sheikh zayed': '854', 'Suez': '6677', 'Tagammoa south': '1072', 
     'Tanta': '8899', 'Zagazig': '2233'
-
 };
 
-// دالة تنظيف البيانات الأساسية
+// دالة تنظيف البيانات
 const cleanData = (val) => {
     if (val === undefined || val === null || ['NA', '#N/A', 'N/A', '', 'null'].includes(val)) return 0;
     let res = parseFloat(val.toString().replace(/,/g, ''));
     return isNaN(res) ? val : res;
 };
 
+// دالة الاتصال بجوجل شيت (معدلة للعمل مع Railway)
 async function getDoc() {
-    // قراءة البيانات من المتغير في ريلواي بدلاً من ملف
-    const credsData = JSON.parse(process.env.googe143); 
-    
-    const auth = new JWT({
-        email: credsData.client_email,
-        key: credsData.private_key.replace(/\\n/g, '\n'), // مهمة جداً لفك تشفير المفتاح
-        scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-    });
+    try {
+        const keysData = process.env.googe143;
+        if (!keysData) {
+            throw new Error("Variable 'googe143' not found in Railway Settings");
+        }
 
-    const doc = new GoogleSpreadsheet(SPREADSHEET_ID, auth);
-    await doc.loadInfo();
-    return doc;
+        const credsData = JSON.parse(keysData);
+        
+        const auth = new JWT({
+            email: credsData.client_email,
+            key: credsData.private_key.replace(/\\n/g, '\n'),
+            scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+        });
+
+        const doc = new GoogleSpreadsheet(SPREADSHEET_ID, auth);
+        await doc.loadInfo();
+        return doc;
+    } catch (err) {
+        console.error("❌ Google API Error:", err.message);
+        throw err;
+    }
 }
 
 // --- المسارات (Routes) ---
 
+// 1. صفحة الدخول
 app.get('/', async (req, res) => {
     try {
         const doc = await getDoc();
         const sheet = doc.sheetsByIndex[0];
         const rows = await sheet.getRows();
+        // جلب أسماء المناطق الفريدة من الشيت
         const allZones = [...new Set(rows.map(r => r.get('zone_name')))].filter(z => z);
         res.render('login', { zones: allZones, error: null });
-    } catch (e) { res.status(500).send("خطأ: " + e.message); }
+    } catch (e) { 
+        res.status(500).send("خطأ في الاتصال بالسيرفر: " + e.message); 
+    }
 });
 
+// 2. معالجة الدخول
 app.post('/login', (req, res) => {
     const { zone, password } = req.body;
     if (zonePasswords[zone] === password) {
         req.session.userZone = zone;
         res.redirect('/dashboard');
     } else {
-        res.render('login', { zones: Object.keys(zonePasswords), error: 'الباسورد خطأ' });
+        // إعادة تحميل الصفحة مع الخطأ
+        res.render('login', { zones: Object.keys(zonePasswords), error: 'كلمة المرور غير صحيحة' });
     }
 });
 
+// 3. لوحة التحكم الرئيسية
 app.get('/dashboard', async (req, res) => {
     if (!req.session.userZone) return res.redirect('/');
     try {
@@ -93,7 +112,7 @@ app.get('/dashboard', async (req, res) => {
     } catch (e) { res.status(500).send("خطأ: " + e.message); }
 });
 
-// 3. صفحة تحليل التارجت
+// 4. صفحة تحليل التارجت
 app.get('/targets', async (req, res) => {
     if (!req.session.userZone) return res.redirect('/');
     try {
@@ -102,22 +121,11 @@ app.get('/targets', async (req, res) => {
         const rows = await sheet.getRows();
         const zoneData = rows.find(r => r.get('zone_name') === req.session.userZone);
 
-        const mainSheet = doc.sheetsByIndex[0];
-        const mainRows = await mainSheet.getRows();
-        const myRiders = mainRows.filter(r => r.get('zone_name') === req.session.userZone);
-        
-        const stats = {
-            total: myRiders.length,
-            withShifts: myRiders.filter(r => cleanData(r.get('شيفتات الغد')) > 0).length,
-            noShifts: myRiders.filter(r => cleanData(r.get('شيفتات الغد')) === 0).length,
-            highWallet: myRiders.filter(r => cleanData(r.get('المحفظه')) > 1000).length
-        };
-
-        res.render('targets', { zone: req.session.userZone, zoneData, stats, headers: sheet.headerValues, cleanData });
-    } catch (e) { res.send("تأكد من وجود شيت باسم 'التارجت'"); }
+        res.render('targets', { zone: req.session.userZone, zoneData, cleanData });
+    } catch (e) { res.send("تأكد من وجود شيت باسم 'التارجت' في الملف"); }
 });
 
-// 4. صفحة التعيينات الجديدة
+// 5. صفحة التعيينات الجديدة
 app.get('/new-riders', async (req, res) => {
     if (!req.session.userZone) return res.redirect('/');
     try {
@@ -135,19 +143,7 @@ app.get('/new-riders', async (req, res) => {
     } catch (e) { res.send("تأكد من وجود شيت باسم 'تعيينات الشهر'"); }
 });
 
-// 5. صفحة ردود الأوردات
-app.get('/order-responses', async (req, res) => {
-    if (!req.session.userZone) return res.redirect('/');
-    try {
-        const doc = await getDoc();
-        const sheet = doc.sheetsByTitle['ردود الأوردات'];
-        const rows = await sheet.getRows();
-        const myOrders = rows.filter(r => r.get('zone_name') === req.session.userZone);
-        res.render('order_responses', { orders: myOrders, zone: req.session.userZone, headers: sheet.headerValues });
-    } catch (e) { res.send("تأكد من وجود شيت باسم 'ردود الأوردات'"); }
-});
-
-// 6. تحميل ملف إكسيل
+// 6. تحميل ملف إكسيل للزون
 app.get('/download', async (req, res) => {
     if (!req.session.userZone) return res.redirect('/');
     try {
@@ -169,10 +165,8 @@ app.get('/logout', (req, res) => {
     res.redirect('/');
 });
 
-app.use(express.static('public'));
-// التعديل المطلوب ليعمل على Railway
+// تشغيل السيرفر
 const PORT = process.env.PORT || 3000; 
-
-app.listen(PORT, () => {
-    console.log(`🚀 السيرفر شغال على بورت ${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 السيرفر شغال بنجاح على بورت ${PORT}`);
 });
