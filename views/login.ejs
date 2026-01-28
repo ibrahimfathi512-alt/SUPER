@@ -1,28 +1,151 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دخول المشرفين | Tanta Car</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { margin: 0; font-family: 'Segoe UI'; display: flex; height: 100vh; overflow: hidden; }
-        .login-side { width: 400px; padding: 50px; background: white; display: flex; flex-direction: column; justify-content: center; box-shadow: 10px 0 30px rgba(0,0,0,0.05); z-index: 2; }
-        .hero-side { flex: 1; background: linear-gradient(rgba(255, 94, 0, 0.8), rgba(255, 94, 0, 0.8)), url('https://images.unsplash.com/photo-1595246140625-573b715d11dc?q=80&w=2070&auto=format&fit=crop'); background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; color: white; text-align: center; }
-        .btn { background: #ff5e00; color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; font-size: 1.1em; transition: 0.3s; }
-        .btn:hover { background: #e05200; transform: translateY(-3px); box-shadow: 0 10px 20px rgba(255, 94, 0, 0.3); }
-        select, input { width: 100%; padding: 15px; margin-bottom: 20px; border-radius: 10px; border: 1px solid #ddd; outline: none; }
+        body {
+            margin: 0; padding: 0;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh;
+            /* الخلفية الجديدة مع التدرج الأسود */
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/images/background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed; /* لتثبيت الخلفية عند التمرير */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff; /* لون النص الافتراضي أبيض */
+        }
+
+        .login-card {
+            background: #2d2d2d;
+            width: 380px;
+            padding: 40px 30px;
+            border-radius: 35px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .top-badge {
+            background: #ff7e20;
+            color: #fff;
+            padding: 6px 18px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 25px;
+        }
+
+        .logo-wrapper {
+            font-size: 60px;
+            color: #ff7e20;
+            margin-bottom: 15px;
+        }
+
+        h1 { color: #ffffff; font-size: 26px; margin: 10px 0; }
+        .slogan { color: #ffb400; font-size: 14px; margin-bottom: 35px; }
+
+        .input-group { position: relative; margin-bottom: 20px; }
+        .input-group i {
+            position: absolute; right: 15px; top: 50%;
+            transform: translateY(-50%); color: #ff7e20;
+        }
+
+        /* تنسيق قائمة الزونات وحقول الإدخال */
+        select, input[type="password"] {
+            width: 100%;
+            padding: 15px 45px 15px 15px;
+            background: #1e1e1e;
+            border: 1px solid #444;
+            border-radius: 12px;
+            color: white;
+            font-size: 15px;
+            outline: none;
+            /* فقط الـ select يحتاج appearance: none لإخفاء سهم المتصفح الافتراضي */
+            appearance: none; 
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+
+        /* سهم مخصص للـ select box */
+        .input-group.select-arrow::after {
+            content: "\f078"; /* رمز سهم لأسفل من Font Awesome */
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900; /* لضمان ظهور الرمز بشكل صحيح */
+            position: absolute;
+            left: 15px; /* ضع السهم على اليسار */
+            top: 50%;
+            transform: translateY(-50%);
+            color: #ff7e20;
+            pointer-events: none; /* لمنع السهم من اعتراض النقر على الـ select */
+        }
+
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #ff8c00, #ff4500);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(255, 69, 0, 0.3);
+            transition: 0.3s;
+        }
+
+        .submit-btn:hover { transform: translateY(-3px); filter: brightness(1.1); }
+
+        .footer-text { margin-top: 35px; color: #888; font-size: 12px; }
+        .footer-text span { display: block; color: #ddd; font-weight: bold; margin: 5px 0; }
     </style>
 </head>
 <body>
-    <div class="login-side">
-        <h1 style="color: #ff5e00;">مرحبا بك </h1>ًك</h1>
-        <p style="color: #666; margin-bottom: 30px;">اختر المنطقة وكلمة المرور للدخول</p>
+
+    <div class="login-card">
+        <div class="top-badge">مكتب طنطا كار | TANTA CAR</div>
+        
+        <div class="logo-wrapper">
+            <i class="fas fa-motorcycle"></i>
+        </div>
+
+        <h1>دخول المشرفين</h1>
+        <p class="slogan">صلّ على النبي ﷺ</p>
+
         <form action="/login" method="POST">
-            <select name="zone"> <% zones.forEach(z => { %> <option value="<%= z %>"><%= z %></option> <% }) %> </select>
-            <input type="password" name="password" placeholder="كلمة المرور" required>
-            <button class="btn">دخول النظام</button>
+            <div class="input-group select-arrow">
+                <i class="fas fa-map-marker-alt"></i>
+                <select name="zone" required>
+                    <option value="" disabled selected>اختر الزون الخاص بك</option>
+                    <% if (typeof zones !== 'undefined' && zones.length > 0) { %>
+                        <% zones.forEach(function(zone) { %>
+                            <option value="<%= zone %>"><%= zone %></option>
+                        <% }); %>
+                    <% } else { %>
+                        <option value="" disabled>لا توجد زونات متاحة</option>
+                    <% } %>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" name="password" placeholder="كلمة المرور" required>
+            </div>
+
+            <button type="submit" class="submit-btn">دخول النظام</button>
         </form>
-        <% if(error) { %> <p style="color: red; margin-top: 15px; text-align: center;"><%= error %></p> <% } %>
+
+        <div class="f')ooter-text">
+            تمت البرمجة بواسطة 
+            <span>Ibrahim Fathi</span>
+            <i class="fas fa-phone-alt"></i> 01550536446
+        </div>
     </div>
-    <div class="hero-side">
-        <div><h1 style="font-size: 4em; margin: 0;">Talabat Dashboard</h1><p style="font-size: 1.5em;">نظام المشرفين متكامل هذا العمل بواسطه IBRAHIM FATHI</p></div>
-    </div>
+
 </body>
 </html>

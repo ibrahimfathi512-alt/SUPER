@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { background: #f8fafb; font-family: 'Segoe UI', sans-serif; padding: 25px; }
+        .nav { background: white; padding: 15px 30px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        th { background: #6c5ce7; color: white; padding: 15px; }
+        td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; }
+        .response-text { text-align: right; color: #2d3436; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <h2>ردود الأوردات - زون <%= zone %></h2>
+        <a href="/dashboard" style="text-decoration: none; color: #6c5ce7; font-weight: bold;">العودة للرئيسية 🏠</a>
+    </div>
+    <table>
+        <thead><tr><% headers.forEach(h => { %> <th><%= h %></th> <% }) %></tr></thead>
+        <tbody>
+            <% orders.forEach(r => { %>
+            <tr>
+                <% headers.forEach(h => { %>
+                <td class="<%= h === 'الرد' ? 'response-text' : '' %>"><%= r.get(h) %></td>
+                <% }) %>
+            </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</body>
+</html>

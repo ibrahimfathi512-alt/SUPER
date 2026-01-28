@@ -1,65 +1,178 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم المشرفين | Talabat</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { background: #f8fafb; font-family: 'Segoe UI', sans-serif; padding: 25px; margin: 0; }
-        .nav { background: white; padding: 15px 30px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
-        .card { background: white; padding: 20px; border-radius: 15px; border-right: 6px solid #ff5e00; text-align: center; }
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 15px; overflow: hidden; }
-        th { background: #ff5e00; color: white; padding: 15px; }
-        td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; }
-        .row-alert { background-color: #ffe0e3 !important; }
-        .wallet-locked { background-color: #d63031 !important; color: white !important; font-weight: bold; border-radius: 8px; }
-        .btn { padding: 10px 15px; border-radius: 10px; text-decoration: none; color: white; font-weight: bold; font-size: 0.9em; }
+        :root {
+            --primary: #ff5e00;
+            --secondary: #2d3436;
+            --success: #00b894;
+            --danger: #d63031;
+            --bg: #f0f2f5;
+            --locked-bg: #fff0f0;
+        }
+
+        body { background: var(--bg); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
+        
+        .top-nav { background: white; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 15px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000; }
+        .logo-area { display: flex; align-items: center; gap: 10px; }
+        .zone-badge { background: #fff3eb; color: var(--primary); padding: 5px 20px; border-radius: 50px; font-weight: bold; border: 1px solid #ffe0cc; }
+        
+        .main-content { padding: 30px 40px; max-width: 1600px; margin: auto; }
+
+        /* Stats Cards */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 35px; }
+        .card { background: white; border-radius: 18px; padding: 25px; transition: all 0.3s ease; border-bottom: 4px solid transparent; box-shadow: 0 4px 6px rgba(0,0,0,0.02); cursor: pointer; position: relative; overflow: hidden; }
+        .card:hover { transform: translateY(-8px); box-shadow: 0 12px 20px rgba(0,0,0,0.08); }
+        .card i { position: absolute; left: -10px; bottom: -10px; font-size: 5rem; opacity: 0.1; transform: rotate(-15deg); }
+        .card h3 { margin: 0; color: #636e72; font-size: 0.95rem; }
+        .card h2 { margin: 10px 0 0; font-size: 2.2rem; color: var(--secondary); }
+        
+        .card.total { border-color: var(--secondary); }
+        .card.shifts { border-color: var(--success); }
+        .card.no-shifts { border-color: #636e72; }
+        /* كارت المحافظ المقفولة */
+        .card.locked { border-color: var(--danger); background: #fff9f9; }
+        .card.locked h2 { color: var(--danger); }
+        .card.locked i { color: var(--danger); opacity: 0.15; }
+
+        .action-bar { display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap; }
+        .btn-action { padding: 12px 24px; border-radius: 12px; text-decoration: none; color: white; font-weight: bold; display: flex; align-items: center; gap: 10px; transition: 0.2s; border: none; cursor: pointer; font-size: 0.9rem; }
+
+        .search-wrapper { flex-grow: 1; position: relative; }
+        .search-wrapper input { width: 100%; padding: 12px 45px 12px 15px; border-radius: 12px; border: 1px solid #ddd; outline: none; box-sizing: border-box; }
+        .search-wrapper i { position: absolute; right: 15px; top: 14px; color: #b2bec3; }
+
+        .table-card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .table-header { padding: 20px 30px; border-bottom: 1px solid #f0f0f0; }
+        .table-responsive { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 1000px; }
+        th { background: #fafafa; color: #636e72; padding: 18px; font-size: 0.85rem; border-bottom: 2px solid #f0f0f0; }
+        td { padding: 15px; text-align: center; border-bottom: 1px solid #f7f7f7; color: var(--secondary); }
+
+        /* ستايل القفل في الجدول */
+        .wallet-locked-row { background-color: #fff5f5 !important; }
+        .wallet-locked-cell { color: var(--danger) !important; font-weight: 800 !important; }
+        .lock-badge { background: var(--danger); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; margin-right: 5px; }
+
+        #alert-toast { position: fixed; bottom: 20px; left: 20px; background: var(--danger); color: white; padding: 15px 25px; border-radius: 12px; display: none; z-index: 2000; animation: slideIn 0.5s ease; box-shadow: 0 10px 20px rgba(214, 48, 49, 0.3); }
+        @keyframes slideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
     </style>
 </head>
 <body>
-    <div class="nav">
-        <h2 style="color: #ff5e00;">زون: <%= zone %></h2>
-        <div style="display: flex; gap: 10px;">
-            <a href="/targets" class="btn" style="background: #ff5e00;">تحليل التارجت 📊</a>
-            <a href="/new-riders" class="btn" style="background: #007bff;">التعيينات الجديدة 🆕</a>
-            <a href="/download" class="btn" style="background: #28a745;">تحميل Excel 📥</a>
+
+    <div class="top-nav">
+        <div class="logo-area">
+            <h2 style="margin:0; color:var(--primary)">TALABAT <span style="font-weight: 200; color: var(--secondary);">SUPERVISOR</span></h2>
+            <div class="zone-badge"><i class="fa-solid fa-location-dot"></i> <%= zone %></div>
+        </div>
+        <a href="/logout" class="btn-action" style="background: var(--secondary);"><i class="fa-solid fa-right-from-bracket"></i> خروج</a>
+    </div>
+
+    <div class="main-content">
+        <div class="stats-grid">
+            <div class="card total" onclick="filterTable('all')">
+                <i class="fa-solid fa-users"></i>
+                <h3>إجمالي القوة</h3>
+                <h2><%= stats.total %></h2>
+            </div>
+            <div class="card shifts" onclick="filterTable('hasShift')">
+                <i class="fa-solid fa-calendar-check"></i>
+                <h3>حاجزين شيفت</h3>
+                <h2><%= stats.withShifts %></h2>
+            </div>
+            <div class="card no-shifts" onclick="filterTable('noShift')">
+                <i class="fa-solid fa-calendar-xmark"></i>
+                <h3>غير حاجزين</h3>
+                <h2><%= stats.noShifts %></h2>
+            </div>
+            <div class="card locked" onclick="filterTable('highWallet')">
+                <i class="fa-solid fa-user-lock"></i>
+                <h3>محافظ مقفولة (+1000)</h3>
+                <h2><%= stats.highWallet %></h2>
+            </div>
+        </div>
+
+        <div class="action-bar">
+            <a href="/targets" class="btn-action" style="background: var(--primary);"><i class="fa-solid fa-chart-line"></i> تحليل التارجت</a>
+            <a href="/new-riders" class="btn-action" style="background: #007bff;"><i class="fa-solid fa-user-plus"></i> التعيينات</a>
+            <a href="/order-responses" class="btn-action" style="background: #6c5ce7;"><i class="fa-solid fa-file-invoice"></i> ردود الأوردات</a>
+            <a href="/download" class="btn-action" style="background: var(--success);"><i class="fa-solid fa-file-excel"></i> تحميل Excel</a>
+            
+            <div class="search-wrapper">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="ابحث بالاسم، الكود، أو المشرف...">
+            </div>
+        </div>
+
+        <div class="table-card">
+            <div class="table-header">
+                <h3 style="margin:0"><i class="fa-solid fa-list-check"></i> بيانات المناديب الحالية</h3>
+            </div>
+            <div class="table-responsive">
+                <table id="tbl">
+                    <thead>
+                        <tr><% headers.forEach(h => { %> <th><%= h %></th> <% }) %></tr>
+                    </thead>
+                    <tbody>
+                        <% riders.forEach(r => { 
+                            let wallet = cleanData(r.get('المحفظه'));
+                            let shifts = cleanData(r.get('شيفتات الغد'));
+                            let isHighWallet = wallet > 1000;
+                        %>
+                        <tr data-wallet="<%= wallet %>" data-shifts="<%= shifts %>" class="<%= isHighWallet ? 'wallet-locked-row' : '' %>">
+                            <% headers.forEach(h => { 
+                                let val = r.get(h);
+                                let displayVal = (val === 'N/A' || val === 'N/A#' || !val) ? '0' : val;
+                                let isWalletCol = (h === 'المحفظه');
+                            %>
+                            <td class="<%= (isWalletCol && isHighWallet) ? 'wallet-locked-cell' : '' %>">
+                                <% if(isWalletCol && isHighWallet) { %>
+                                    <span class="lock-badge"><i class="fa-solid fa-lock"></i> مقفول</span>
+                                <% } %>
+                                <%= displayVal %>
+                            </td>
+                            <% }) %>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-    <div class="stats-grid">
-        <div class="card"><h3>إجمالي القوة</h3><h2><%= stats.total %></h2></div>
-        <div class="card" style="border-right-color: #28a745;"><h3>حاجزين شيفت</h3><h2><%= stats.withShifts %></h2></div>
-        <div class="card" style="border-right-color: #636e72;"><h3>غير حاجزين</h3><h2><%= stats.noShifts %></h2></div>
-        <div class="card" style="border-right-color: #007bff;"><h3>جدد (يناير)</h3><h2><%= stats.newCount %></h2></div>
-        <div class="card" style="border-right-color: #dc3545;"><h3>محافظ > 1000</h3><h2><%= stats.highWallet %></h2></div>
-    </div>
-
-    <input type="text" id="srch" onkeyup="search()" placeholder="🔎 ابحث بـ ID أو الاسم..." style="width: 100%; padding: 15px; margin-bottom: 20px; border-radius: 12px; border: 2px solid #ddd; outline: none;">
-
-    <table id="tbl">
-        <thead><tr> <% headers.forEach(h => { %> <th><%= h %></th> <% }) %> </tr></thead>
-        <tbody>
-            <% riders.forEach(r => { 
-                let wallet = cleanData(r.get('المحفظه'));
-                let isAlert = (cleanData(r.get('شيفتات الغد')) === 0) || (cleanData(r.get('التاخيرات')) > 0);
-            %>
-            <tr class="<%= isAlert ? 'row-alert' : '' %>">
-                <% headers.forEach(h => { %>
-                    <td class="<%= (h === 'المحفظه' && wallet > 1000) ? 'wallet-locked' : '' %>">
-                        <%= cleanData(r.get(h)) %>
-                        <%= (h === 'المحفظه' && wallet > 1000) ? '🔒' : '' %>
-                    </td>
-                <% }) %>
-            </tr>
-            <% }) %>
-        </tbody>
-    </table>
+    <div id="alert-toast">⚠️ انتبه! يوجد <%= stats.highWallet %> مندوب محافظهم مقفولة.</div>
 
     <script>
-        function search() {
-            let f = document.getElementById("srch").value.toLowerCase();
-            let rows = document.getElementById("tbl").getElementsByTagName("tr");
-            for (let i = 1; i < rows.length; i++) {
-                rows[i].style.display = rows[i].innerText.toLowerCase().includes(f) ? "" : "none";
+        window.onload = function() {
+            if (<%= stats.highWallet %> > 0) {
+                const toast = document.getElementById('alert-toast');
+                toast.style.display = 'block';
+                setTimeout(() => { toast.style.display = 'none'; }, 5000);
             }
+        };
+
+        function searchTable() {
+            let input = document.getElementById("searchInput").value.toLowerCase();
+            let rows = document.querySelectorAll("#tbl tbody tr");
+            rows.forEach(row => {
+                row.style.display = row.innerText.toLowerCase().includes(input) ? "" : "none";
+            });
+        }
+
+        function filterTable(type) {
+            const rows = document.querySelectorAll('#tbl tbody tr');
+            rows.forEach(row => {
+                const w = parseFloat(row.dataset.wallet) || 0;
+                const s = parseFloat(row.dataset.shifts) || 0;
+                if(type === 'all') row.style.display = '';
+                else if(type === 'hasShift') row.style.display = s > 0 ? '' : 'none';
+                else if(type === 'noShift') row.style.display = s === 0 ? '' : 'none';
+                else if(type === 'highWallet') row.style.display = w > 1000 ? '' : 'none';
+            });
         }
     </script>
 </body>
