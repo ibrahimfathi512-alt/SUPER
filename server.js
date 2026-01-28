@@ -38,17 +38,17 @@ const cleanData = (val) => {
     return isNaN(res) ? val : res;
 };
 
-async function getDoc() {
-    let credsData = require('./credentials.json');
-    const auth = new JWT({
-        email: credsData.client_email,
-        key: credsData.private_key.replace(/\\n/g, '\n'),
+// أضف هذه السطور بدلاً منها
+const credsData = JSON.parse(process.env.googe143);
+const auth = new JWT({
+    email: credsData.client_email,
+    key: credsData.private_key.replace(/\\n/g, '\n'),
         scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
     const doc = new GoogleSpreadsheet(SPREADSHEET_ID, auth);
     await doc.loadInfo();
     return doc;
-}
+
 
 // --- المسارات (Routes) ---
 
