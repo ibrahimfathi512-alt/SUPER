@@ -167,5 +167,9 @@ app.get('/logout', (req, res) => {
 });
 
 app.use(express.static('public'));
-const PORT = 3000;
-app.listen(PORT, () => console.log(`🚀 السيرفر شغال على http://localhost:${PORT}`));
+// التعديل المطلوب ليعمل على Railway
+const PORT = process.env.PORT || 3000; 
+
+app.listen(PORT, () => {
+    console.log(`🚀 السيرفر شغال على بورت ${PORT}`);
+});

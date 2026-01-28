@@ -10,23 +10,24 @@
             margin: 0; padding: 0;
             display: flex; justify-content: center; align-items: center;
             min-height: 100vh;
-            /* الخلفية الجديدة مع التدرج الأسود */
-            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/images/background.jpg');
+            /* استخدام رابط مباشر للخلفية لضمان ظهورها فوراً */
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                        url('https://images.unsplash.com/photo-1626125336093-026859739a82?q=80&w=1600&auto=format&fit=crop');
             background-size: cover;
             background-position: center;
-            background-attachment: fixed; /* لتثبيت الخلفية عند التمرير */
+            background-attachment: fixed;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #fff; /* لون النص الافتراضي أبيض */
         }
 
         .login-card {
-            background: #2d2d2d;
+            background: rgba(45, 45, 45, 0.9);
             width: 380px;
             padding: 40px 30px;
             border-radius: 35px;
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
             text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
         }
 
         .top-badge {
@@ -34,20 +35,15 @@
             color: #fff;
             padding: 6px 18px;
             border-radius: 50px;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: bold;
             display: inline-block;
             margin-bottom: 25px;
         }
 
-        .logo-wrapper {
-            font-size: 60px;
-            color: #ff7e20;
-            margin-bottom: 15px;
-        }
-
-        h1 { color: #ffffff; font-size: 26px; margin: 10px 0; }
-        .slogan { color: #ffb400; font-size: 14px; margin-bottom: 35px; }
+        .logo-wrapper { font-size: 60px; color: #ff7e20; margin-bottom: 15px; }
+        h1 { color: #ffffff; font-size: 24px; margin: 10px 0; }
+        .slogan { color: #ffb400; font-size: 13px; margin-bottom: 30px; }
 
         .input-group { position: relative; margin-bottom: 20px; }
         .input-group i {
@@ -55,8 +51,7 @@
             transform: translateY(-50%); color: #ff7e20;
         }
 
-        /* تنسيق قائمة الزونات وحقول الإدخال */
-        select, input[type="password"] {
+        select, input {
             width: 100%;
             padding: 15px 45px 15px 15px;
             background: #1e1e1e;
@@ -65,25 +60,8 @@
             color: white;
             font-size: 15px;
             outline: none;
-            /* فقط الـ select يحتاج appearance: none لإخفاء سهم المتصفح الافتراضي */
-            appearance: none; 
-            -webkit-appearance: none;
-            -moz-appearance: none;
+            appearance: none;
         }
-
-        /* سهم مخصص للـ select box */
-        .input-group.select-arrow::after {
-            content: "\f078"; /* رمز سهم لأسفل من Font Awesome */
-            font-family: "Font Awesome 6 Free";
-            font-weight: 900; /* لضمان ظهور الرمز بشكل صحيح */
-            position: absolute;
-            left: 15px; /* ضع السهم على اليسار */
-            top: 50%;
-            transform: translateY(-50%);
-            color: #ff7e20;
-            pointer-events: none; /* لمنع السهم من اعتراض النقر على الـ select */
-        }
-
 
         .submit-btn {
             width: 100%;
@@ -101,51 +79,41 @@
 
         .submit-btn:hover { transform: translateY(-3px); filter: brightness(1.1); }
 
-        .footer-text { margin-top: 35px; color: #888; font-size: 12px; }
-        .footer-text span { display: block; color: #ddd; font-weight: bold; margin: 5px 0; }
+        .footer-text { margin-top: 35px; color: #ccc; font-size: 11px; }
+        .footer-text span { display: block; color: #fff; font-weight: bold; margin: 5px 0; }
     </style>
 </head>
 <body>
-
     <div class="login-card">
         <div class="top-badge">مكتب طنطا كار | TANTA CAR</div>
-        
-        <div class="logo-wrapper">
-            <i class="fas fa-motorcycle"></i>
-        </div>
-
+        <div class="logo-wrapper"><i class="fas fa-motorcycle"></i></div>
         <h1>دخول المشرفين</h1>
         <p class="slogan">صلّ على النبي ﷺ</p>
 
         <form action="/login" method="POST">
-            <div class="input-group select-arrow">
+            <div class="input-group">
                 <i class="fas fa-map-marker-alt"></i>
                 <select name="zone" required>
                     <option value="" disabled selected>اختر الزون الخاص بك</option>
-                    <% if (typeof zones !== 'undefined' && zones.length > 0) { %>
+                    <% if (typeof zones !== 'undefined') { %>
                         <% zones.forEach(function(zone) { %>
                             <option value="<%= zone %>"><%= zone %></option>
                         <% }); %>
-                    <% } else { %>
-                        <option value="" disabled>لا توجد زونات متاحة</option>
                     <% } %>
                 </select>
             </div>
-
             <div class="input-group">
                 <i class="fas fa-lock"></i>
                 <input type="password" name="password" placeholder="كلمة المرور" required>
             </div>
-
             <button type="submit" class="submit-btn">دخول النظام</button>
         </form>
 
-        <div class="f')ooter-text">
-            تمت البرمجة بواسطة 
+        <div class="footer-text">
+            تمت البرمجة بواسطة المشرف
             <span>Ibrahim Fathi</span>
             <i class="fas fa-phone-alt"></i> 01550536446
         </div>
     </div>
-
 </body>
 </html>
